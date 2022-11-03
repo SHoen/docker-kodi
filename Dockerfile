@@ -18,20 +18,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-FROM ubuntu:focal
+FROM ubuntu:kinetic
 
-ARG KODI_VERSION=19.0
+ARG KODI_VERSION=20.0
 
 # https://github.com/ehough/docker-nfs-server/pull/3#issuecomment-387880692
 ARG DEBIAN_FRONTEND=noninteractive
 
-# install the team-xbmc ppa
 RUN apt-get update                                                        && \
-    apt-get install -y --no-install-recommends software-properties-common && \
-    add-apt-repository ppa:team-xbmc/ppa                                  && \
-    apt-get -y purge openssl software-properties-common                   && \
-    apt-get -y --purge autoremove                                         && \
+    apt-get install kodi  -y                                        && \
     rm -rf /var/lib/apt/lists/*
+
+# RUN apt-get install kodi  -y   
+RUN apt-get install libraspberrypi0 -y                          
 
 ARG KODI_EXTRA_PACKAGES=
 
@@ -49,29 +48,13 @@ ARG KODI_EXTRA_PACKAGES=
 #  - kodi-pvr-*                   PVR add-ons (DEPRECATED: WILL BE REMOVED IN VERSION 4 OF THIS IMAGE)
 #  - kodi-screensaver-*           additional screensavers (DEPRECATED: WILL BE REMOVED IN VERSION 4 OF THIS IMAGE)
 RUN packages="                                               \
-                                                             \
     ca-certificates                                          \
-    kodi=2:${KODI_VERSION}+*                                 \
     kodi-eventclients-kodi-send                              \
-    kodi-game-libretro                                       \
-    kodi-game-libretro-beetle-pce-fast                       \
-    kodi-game-libretro-beetle-vb                             \
-    kodi-game-libretro-beetle-wswan                          \
-    kodi-game-libretro-bsnes-mercury-accuracy                \
-    kodi-game-libretro-bsnes-mercury-balanced                \
-    kodi-game-libretro-bsnes-mercury-performance             \
-    kodi-game-libretro-desmume                               \
-    kodi-game-libretro-fbalpha2012                           \
-    kodi-game-libretro-fuse                                  \
-    kodi-game-libretro-gambatte                              \
-    kodi-game-libretro-prboom                                \
-    kodi-game-libretro-stella                                \
-    kodi-game-libretro-tgbdual                               \
-    kodi-game-libretro-vba-next                              \
-    kodi-game-libretro-virtualjaguar                         \
     kodi-inputstream-adaptive                                \
+    kodi-inputstream-ffmpegdirect                                \
     kodi-inputstream-rtmp                                    \
     kodi-peripheral-joystick                                 \
+    kodi-peripheral-xarcade                                  \
     kodi-peripheral-xarcade                                  \
     kodi-pvr-argustv                                         \
     kodi-pvr-dvblink                                         \
@@ -95,25 +78,20 @@ RUN packages="                                               \
     kodi-pvr-wmc                                             \
     kodi-pvr-zattoo                                          \
     kodi-screensaver-asteroids                               \
-    kodi-screensaver-asterwave                               \
     kodi-screensaver-biogenesis                              \
-    kodi-screensaver-cpblobs                                 \
     kodi-screensaver-greynetic                               \
-    kodi-screensaver-matrixtrails                            \
     kodi-screensaver-pingpong                                \
     kodi-screensaver-pyro                                    \
-    kodi-screensaver-stars                                   \
     locales                                                  \
     pulseaudio                                               \
     tzdata                                                   \
-    va-driver-all                                            \
-    ${KODI_EXTRA_PACKAGES}"                               && \
+    va-driver-all"                                        && \
                                                              \
     apt-get update                                        && \
     apt-get install -y --no-install-recommends $packages  && \
     apt-get -y --purge autoremove                         && \
     rm -rf /var/lib/apt/lists/*
-
+#
 # setup entry point
 COPY entrypoint.sh /usr/local/bin
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

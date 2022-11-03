@@ -1,3 +1,5 @@
+
+
 # erichough/kodi
 
 Dockerized [Kodi](https://kodi.tv/) with audio and video.
@@ -87,6 +89,17 @@ The [advanced topics](doc/advanced.md) documentation describes a few more useful
  * [Image Variants](doc/advanced.md#image-variants)
  * [Custom Startup Behavior](doc/advanced.md#custom-startup-behavior)
  * [Command-Line Shutdown](doc/advanced.md#command-line-shutdown)
+
+ ## Raspberry specific
+
+### Build kodi-image
+docker build projects/docker-kodi -t docker-kodi
+
+### Probably set env
+export DISPLAY=:0 && export XAUTHORITY=/home/usr/.Xauthority
+### run docker-kodi
+x11docker --xorg --gpu --pulseaudio=host --newprivileges=no --network=host --name=kodi  --home=/home/usr/kodi-home -- -v=/media//kodi-media:/media --  docker-kodi 
+
 
 ## Help!
 
