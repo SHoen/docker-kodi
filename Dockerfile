@@ -18,15 +18,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-FROM ubuntu:kinetic
+
+## using ARM 32 bit userspace to be able to run WIDEVINE e.g. for NETFLIX
+FROM arm32v7/ubuntu:kinetic
 
 ARG KODI_VERSION=20.0
 
 # https://github.com/ehough/docker-nfs-server/pull/3#issuecomment-387880692
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update                                                        && \
-    apt-get install kodi  -y                                        && \
+# Add 32 bit packages
+RUN dpkg --add-architecture armhf &&  apt update
+RUN apt-get update                                                   && \
+    apt-get install kodi  -y                                         && \
     rm -rf /var/lib/apt/lists/*
 
 # RUN apt-get install kodi  -y   
@@ -34,19 +38,6 @@ RUN apt-get install libraspberrypi0 -y
 
 ARG KODI_EXTRA_PACKAGES=
 
-# besides kodi, we will install a few extra packages:
-#  - ca-certificates              allows Kodi to properly establish HTTPS connections
-#  - kodi-eventclients-kodi-send  allows us to shut down Kodi gracefully upon container termination
-#  - kodi-game-libretro           allows Kodi to utilize Libretro cores as game add-ons
-#  - kodi-inputstream-*           input stream add-ons
-#  - kodi-peripheral-*            enables the use of gamepads, joysticks, game controllers, etc.
-#  - locales                      additional spoken language support (via x11docker --lang option)
-#  - pulseaudio                   in case the user prefers PulseAudio instead of ALSA
-#  - tzdata                       necessary for timezone selection
-#  - va-driver-all                the full suite of drivers for the Video Acceleration API (VA API)
-#  - kodi-game-libretro-*         Libretro cores (DEPRECATED: WILL BE REMOVED IN VERSION 4 OF THIS IMAGE)
-#  - kodi-pvr-*                   PVR add-ons (DEPRECATED: WILL BE REMOVED IN VERSION 4 OF THIS IMAGE)
-#  - kodi-screensaver-*           additional screensavers (DEPRECATED: WILL BE REMOVED IN VERSION 4 OF THIS IMAGE)
 RUN packages="                                               \
     ca-certificates                                          \
     kodi-eventclients-kodi-send                              \
@@ -85,13 +76,23 @@ RUN packages="                                               \
     locales                                                  \
     pulseaudio                                               \
     tzdata                                                   \
+    build-essential                                            \
+    libnss3                                                 \
+    python3-pip                                             \
     va-driver-all"                                        && \
                                                              \
     apt-get update                                        && \
     apt-get install -y --no-install-recommends $packages  && \
     apt-get -y --purge autoremove                         && \
     rm -rf /var/lib/apt/lists/*
-#
-# setup entry point
+
+#Install for Netflix Addon see 
+RUN pip3 install --user pycryptodomex
+
+#Get working widevine for Error on Inputstream e.g. on NETFLIX with input stream helper see 
+# https://github.com/CastagnaIT/plugin.video.netflix/issues/1154#issuecomment-837286703
+RUN wget https://k.slyguy.xyz/.decryptmodules/widevine/4.10.1679.0-linux-armv7.so -o /storage/.kodi/cdm/libwidevinecdm.so
 COPY entrypoint.sh /usr/local/bin
+
+# setup entry point
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
